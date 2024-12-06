@@ -45,11 +45,11 @@ jobs:
         with:
           version: ${{ env.BAL_VERSION }}
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: 17.0.7
+          java-version: 21.0.3
 
       - name: Set ENV Variables
         run: |
@@ -69,6 +69,9 @@ jobs:
 
       - name: Run Trivy Vulnerability Scanner
         uses: aquasecurity/trivy-action@master
+        env:
+          TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db,public.ecr.aws/aquasecurity/trivy-db
+          TRIVY_JAVA_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-java-db,public.ecr.aws/aquasecurity/trivy-java-db
         with:
           scan-type: "rootfs"
           scan-ref: "${{ github.workspace }}/ballerina/lib"
@@ -77,6 +80,7 @@ jobs:
           exit-code: "1"
           skip-dirs: "examples"
           scanners: "vuln"
+          cache-dir: "/tmp/trivy-cache"
 
       - name: Get Release Version
         run: echo "VERSION=$((grep -w 'version' | cut -d= -f2) < gradle.properties | rev | cut -d- -f2 | rev)" >> $GITHUB_ENV
